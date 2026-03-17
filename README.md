@@ -9,3 +9,9 @@ cd ~/gearlock
 npm run dev 
 
 THIS WILL WORK FOR SURE 
+
+![image alt](https://github.com/NIGAMRAJ711/GEAR-LOCK/blob/68b13b63675cc64a5a2485b6235c01581a7374a5/3.png)
+![image alt](https://github.com/NIGAMRAJ711/GEAR-LOCK/blob/68b13b63675cc64a5a2485b6235c01581a7374a5/2.png)
+![image alt](https://github.com/NIGAMRAJ711/GEAR-LOCK/blob/68b13b63675cc64a5a2485b6235c01581a7374a5/1.png)
+![image alt](https://github.com/NIGAMRAJ711/GEAR-LOCK/blob/68b13b63675cc64a5a2485b6235c01581a7374a5/4.png)
+![image alt](https://github.com/NIGAMRAJ711/GEAR-LOCK/blob/68b13b63675cc64a5a2485b6235c01581a7374a5/5.png)
