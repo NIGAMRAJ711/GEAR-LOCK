@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GearLock v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #06080b;
+  --bg2:    #0b0f14;
+  --bg3:    #0f1520;
+  --panel:  #111927;
+  --b1:     #1a2535;
+  --b2:     #243244;
+  --cyan:   #00ffcc;
+  --red:    #ff2d55;
+  --amber:  #ffaa00;
+  --green:  #39ff14;
+  --blue:   #0af;
+  --purple: #bf5fff;
+  --text:   #c8daea;
+  --text2:  #5a7a90;
+  --text3:  #253040;
+  --mono:   'Share Tech Mono', monospace;
+  --head:   'Bebas Neue', cursive;
+  --body:   'Barlow', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;}
+
+/* animated background grid */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,204,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,204,0.025) 1px,transparent 1px);
+  background-size:32px 32px;pointer-events:none;z-index:0;
+}
+
+.wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:1.5rem 1.25rem 5rem;}
+
+/* ── HEADER ── */
+.hdr{text-align:center;padding:1.5rem 0 2rem;}
+.hdr-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--cyan);
+  border:1px solid rgba(0,255,204,0.2);padding:4px 14px;display:inline-block;margin-bottom:1rem;}
+.hdr h1{font-family:var(--head);font-size:clamp(4rem,10vw,7rem);letter-spacing:6px;
+  color:var(--text);line-height:0.9;margin-bottom:4px;
+  text-shadow:0 0 40px rgba(0,255,204,0.15);}
+.hdr h1 em{color:var(--cyan);font-style:normal;}
+.hdr-sub{font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:2px;margin-bottom:1.2rem;}
+
+/* live ms counter in header */
+.ms-counter{
+  display:inline-flex;align-items:center;gap:12px;
+  background:var(--bg2);border:1px solid var(--b1);
+  padding:8px 20px;margin-bottom:1rem;
+}
+.ms-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text2);}
+.ms-val{font-family:var(--mono);font-size:1.1rem;color:var(--cyan);min-width:120px;text-align:right;}
+.ms-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink 0.5s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.badge{font-family:var(--mono);font-size:8px;letter-spacing:1px;
+  padding:3px 9px;border:1px solid rgba(57,255,20,0.2);
+  color:rgba(57,255,20,0.6);background:rgba(57,255,20,0.04);}
+
+/* ── TABS ── */
+.tabs{display:flex;border:1px solid var(--b2);margin-bottom:1.5rem;overflow:hidden;}
+.tab{flex:1;padding:13px 6px;background:var(--bg2);border:none;
+  color:var(--text2);font-family:var(--body);font-size:13px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;cursor:pointer;
+  border-right:1px solid var(--b1);transition:all 0.2s;position:relative;}
+.tab:last-child{border-right:none;}
+.tab.on{background:var(--bg3);color:var(--cyan);}
+.tab.on::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+
+/* ── PANEL ── */
+.panel{display:none;animation:fadeUp 0.35s ease both;}
+.panel.on{display:block;}
+
+/* ── CARD ── */
+.card{background:var(--panel);border:1px solid var(--b1);padding:1.5rem 1.75rem;margin-bottom:1.25rem;position:relative;}
+.card::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;
+  background:linear-gradient(to bottom,var(--cyan),transparent);}
+.ct{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--cyan);
+  text-transform:uppercase;margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;}
+.ct::after{content:'';flex:1;height:1px;background:var(--b1);}
+
+/* ── FORM ── */
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:.9rem;}
+.fg label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;}
+.fg input,.fg select{background:var(--bg2);border:1px solid var(--b1);color:var(--text);
+  font-family:var(--mono);font-size:13px;padding:9px 13px;outline:none;width:100%;
+  transition:border-color .2s,box-shadow .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,255,204,.08);}
+.fg input[type=password]{letter-spacing:3px;}
+.fg input::placeholder{color:var(--text3);}
+.fg select option{background:var(--bg2);}
+
+/* gear pills */
+.gpills{display:flex;gap:6px;flex-wrap:wrap;}
+.gp{padding:7px 14px;background:var(--bg2);border:1px solid var(--b1);
+  color:var(--text2);font-family:var(--mono);font-size:12px;cursor:pointer;transition:all .15s;}
+.gp.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,204,.06);}
+
+/* ── SELF-DESTRUCT COUNTDOWN ── */
+.destruct-box{
+  background:rgba(255,45,85,.06);border:1px solid rgba(255,45,85,.25);
+  padding:1rem 1.25rem;margin-bottom:1rem;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.destruct-icon{font-size:1.4rem;}
+.destruct-text{flex:1;}
+.destruct-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--red);margin-bottom:3px;}
+.destruct-detail{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.6;}
+.destruct-timer{font-family:var(--mono);font-size:1.1rem;color:var(--red);font-weight:bold;
+  text-align:right;min-width:100px;}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:14px;background:transparent;border:1px solid var(--cyan);
+  color:var(--cyan);font-family:var(--body);font-size:13px;font-weight:600;
+  letter-spacing:4px;text-transform:uppercase;cursor:pointer;transition:all .2s;
+  position:relative;overflow:hidden;margin-top:.5rem;}
+.btn::before{content:'';position:absolute;inset:0;background:var(--cyan);
+  transform:scaleX(0);transform-origin:left;transition:transform .25s;z-index:0;}
+.btn:hover::before{transform:scaleX(1);}
+.btn:hover{color:var(--bg);}
+.btn span{position:relative;z-index:1;}
+.btn.red{border-color:var(--red);color:var(--red);}
+.btn.red::before{background:var(--red);}
+.btn.red:hover{color:#fff;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn:disabled::before{display:none;}
+
+/* ── PASSWORD DISPLAY ── */
+.pw-box{background:var(--bg);border:1px solid var(--b2);padding:1.75rem;text-align:center;margin-top:1.25rem;}
+.pw-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--text3);
+  display:block;margin-bottom:1rem;}
+.pw-chars{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;}
+.pwc{width:34px;height:42px;background:var(--bg3);border:1px solid var(--b2);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+  font-size:15px;font-weight:bold;color:var(--cyan);position:relative;
+  animation:cpop .3s ease both;}
+.pwc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:var(--cyan);box-shadow:0 0 5px var(--cyan);}
+.pw-warn{margin-top:1rem;padding:10px 14px;background:rgba(255,170,0,.06);
+  border:1px solid rgba(255,170,0,.2);font-family:var(--mono);font-size:10px;
+  color:var(--amber);letter-spacing:1px;line-height:1.8;text-align:left;}
+.btn-copy{background:transparent;border:1px solid var(--b2);color:var(--text2);
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:7px 18px;
+  cursor:pointer;transition:all .2s;margin-top:.9rem;text-transform:uppercase;}
+.btn-copy:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:.6rem;margin-bottom:1.25rem;}
+.stat{background:var(--bg2);border:1px solid var(--b1);padding:.8rem;text-align:center;}
+.sv{font-family:var(--mono);font-size:.95rem;color:var(--cyan);display:block;font-weight:bold;word-break:break-all;}
+.sl{font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:3px;display:block;}
+
+/* ── UNLOCK ── */
+.uchars{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;}
+.uc{width:40px;height:48px;background:var(--bg2);border:1px solid var(--b1);
+  color:var(--text);font-family:var(--mono);font-size:17px;text-align:center;
+  outline:none;text-transform:uppercase;transition:all .15s;}
+.uc:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,255,204,.08);}
+.uc.ok{border-color:var(--green);color:var(--green);}
+.uc.bad{border-color:var(--red);color:var(--red);}
+
+/* nonce countdown */
+.nonce-bar{background:var(--bg2);border:1px solid var(--b1);
+  padding:8px 14px;font-family:var(--mono);font-size:10px;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:.8rem;display:none;}
+.nonce-timer{color:var(--amber);font-size:1rem;font-weight:bold;}
+.nonce-ok{color:var(--green);}
+
+/* ms live display in unlock */
+.live-ms{
+  background:var(--bg2);border:1px solid var(--b1);
+  padding:10px 14px;font-family:var(--mono);font-size:11px;
+  display:flex;justify-content:space-between;margin-bottom:.8rem;
+}
+.live-ms-label{color:var(--text2);}
+.live-ms-val{color:var(--cyan);}
+
+/* ── RESULT ── */
+.result{border:1px solid var(--b1);padding:2rem;text-align:center;
+  margin-top:1.25rem;display:none;animation:fadeUp .4s ease both;}
+.result.ok{border-color:var(--green);background:rgba(57,255,20,.04);}
+.result.fail{border-color:var(--red);background:rgba(255,45,85,.04);}
+.ri{font-family:var(--head);font-size:3rem;margin-bottom:.5rem;}
+.rt{font-family:var(--head);font-size:2.5rem;letter-spacing:4px;margin-bottom:.5rem;}
+.result.ok .rt{color:var(--green);}
+.result.fail .rt{color:var(--red);}
+.rd{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:2;}
+
+/* ── ERR / INFO ── */
+.err{font-family:var(--mono);font-size:10px;color:var(--red);
+  padding:7px 11px;border:1px solid rgba(255,45,85,.2);
+  background:rgba(255,45,85,.04);margin-top:.6rem;display:none;line-height:1.6;}
+.info{font-family:var(--mono);font-size:10px;color:var(--cyan);
+  padding:7px 11px;border:1px solid rgba(0,255,204,.12);
+  background:rgba(0,255,204,.03);margin-bottom:.8rem;line-height:1.6;}
+
+/* ── HOW IT WORKS ── */
+.timeline{position:relative;padding-left:28px;}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;
+  width:1px;background:linear-gradient(to bottom,var(--cyan),transparent);}
+.tlitem{position:relative;margin-bottom:1.5rem;}
+.tlitem::before{content:'';position:absolute;left:-24px;top:6px;
+  width:8px;height:8px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan);}
+.tl-num{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--cyan);margin-bottom:4px;}
+.tl-title{font-size:15px;font-weight:600;margin-bottom:4px;}
+.tl-desc{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.7;}
+
+/* loading */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--b2);
+  border-top-color:var(--cyan);border-radius:50%;animation:rot .6s linear infinite;
+  margin-right:7px;vertical-align:middle;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes cpop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes rot{to{transform:rotate(360deg)}}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:.3}}
+
+@media(max-width:580px){
+  .r2{grid-template-columns:1fr;}
+  .pwc{width:27px;height:34px;font-size:12px;}
+  .uc{width:32px;height:40px;font-size:15px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-eyebrow">v3.0 — millisecond rotation + self-destruct</div>
+  <h1>GEAR<em>LOCK</em></h1>
+  <p class="hdr-sub">// one day. one chance. then gone forever. //</p>
+
+  <div class="ms-counter">
+    <span class="ms-dot"></span>
+    <span class="ms-label">server ms epoch</span>
+    <span class="ms-val" id="hdr-ms">fetching...</span>
+  </div>
+
+  <div class="badges">
+    <span class="badge">✓ 1MS ROTATION</span>
+    <span class="badge">✓ ±500MS WINDOW</span>
+    <span class="badge">✓ 1-DAY VALIDITY</span>
+    <span class="badge">✓ SELF-DESTRUCT</span>
+    <span class="badge">✓ HMAC-SHA256</span>
+    <span class="badge">✓ 256-BIT ID</span>
+    <span class="badge">✓ NONCE 10S TTL</span>
+    <span class="badge">✓ ONE-TIME USE</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab on"  onclick="tab('c')">⚙ Create</button>
+  <button class="tab"     onclick="tab('u')">⬡ Unlock</button>
+  <button class="tab"     onclick="tab('h')">◈ How It Works</button>
+</div>
+
+<!-- ══ CREATE ══ -->
+<div class="panel on" id="p-c">
+
+  <div class="card">
+    <div class="ct">01 — unlock date</div>
+    <div class="r2">
+      <div class="fg">
+        <label>Unlock Date (UTC)</label>
+        <input type="date" id="c-date">
+      </div>
+      <div class="fg">
+        <label>Label / Purpose</label>
+        <input type="text" id="c-label" placeholder="e.g. contract, time capsule...">
+      </div>
+    </div>
+    <div class="destruct-box" id="destruct-preview" style="display:none">
+      <div class="destruct-icon">💥</div>
+      <div class="destruct-text">
+        <div class="destruct-title">self-destruct scheduled</div>
+        <div class="destruct-detail" id="destruct-preview-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">02 — secret pin <span style="color:var(--amber);font-size:8px;margin-left:4px">never stored — mixed into cryptographic seed</span></div>
+    <div class="info">PIN is HMAC'd into the master secret. Knowing Lock ID + algorithm without PIN = useless.</div>
+    <div class="r2">
+      <div class="fg">
+        <label>PIN (min 6 chars)</label>
+        <input type="password" id="c-pin" placeholder="secret pin" autocomplete="new-password">
+      </div>
+      <div class="fg">
+        <label>Confirm PIN</label>
+        <input type="password" id="c-pin2" placeholder="confirm pin" autocomplete="new-password">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">03 — gear config</div>
+    <div class="fg">
+      <label>Gears (= password length)</label>
+      <div class="gpills">
+        <div class="gp" onclick="sg(4)">4</div>
+        <div class="gp" onclick="sg(6)">6</div>
+        <div class="gp on" onclick="sg(8)">8</div>
+        <div class="gp" onclick="sg(12)">12</div>
+        <div class="gp" onclick="sg(16)">16</div>
+      </div>
+    </div>
+    <div class="r2" style="margin-top:1rem">
+      <div class="fg">
+        <label>Spikes per Gear</label>
+        <select id="c-sp">
+          <option value="32">32</option>
+          <option value="64" selected>64 (recommended)</option>
+          <option value="128">128 (max)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Rotation Speed</label>
+        <select id="c-rot" disabled>
+          <option value="1">1 millisecond (fixed)</option>
+        </select>
+      </div>
+    </div>
+    <div class="err" id="c-err"></div>
+    <button class="btn" onclick="createLock()"><span id="c-btxt">⚙ Generate GearLock v3</span></button>
+  </div>
+
+  <div id="c-out" style="display:none">
+    <div class="stats" id="c-stats"></div>
+
+    <div class="destruct-box">
+      <div class="destruct-icon">💥</div>
+      <div class="destruct-text">
+        <div class="destruct-title">self-destruct countdown</div>
+        <div class="destruct-detail" id="sd-detail"></div>
+      </div>
+      <div class="destruct-timer" id="sd-timer">--</div>
+    </div>
+
+    <!-- gear visualization -->
+    <div style="background:var(--bg2);border:1px solid var(--b1);padding:1rem;margin-bottom:1.25rem;min-height:280px;display:flex;align-items:center;justify-content:center;position:relative;">
+      <canvas id="c-canvas" width="580" height="260"></canvas>
+      <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--text3);">HOLE POSITIONS INTENTIONALLY HIDDEN — VISUALIZATION DECORATIVE ONLY</div>
+    </div>
+
+    <div class="card" id="reveal-card">
+      <div class="ct">reveal password — enter pin again</div>
+      <div class="info">The server re-derives the password fresh. It was never stored anywhere.</div>
+      <div class="fg">
+        <label>PIN to reveal</label>
+        <input type="password" id="r-pin" placeholder="enter pin to reveal password">
+      </div>
+      <div class="err" id="r-err"></div>
+      <button class="btn red" onclick="revealPw()"><span id="r-btxt">⬡ Reveal Password</span></button>
+    </div>
+
+    <div class="pw-box" id="pw-box" style="display:none">
+      <span class="pw-eyebrow">▼ stored password — valid only on unlock day — shown once ▼</span>
+      <div class="pw-chars" id="pw-chars"></div>
+      <div class="pw-warn">
+        ⚠ <strong>CRITICAL:</strong> Password rotates every <strong>1 millisecond</strong>.<br>
+        This value is your gear alignment at the unlock date (midnight UTC).<br>
+        At unlock time the system accepts a <strong>±500ms window</strong> — just click verify.<br>
+        After the unlock day ends: <strong>ALL data self-destructs permanently.</strong>
+      </div>
+      <button class="btn-copy" onclick="copyPw()">⊕ copy password</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ UNLOCK ══ -->
+<div class="panel" id="p-u">
+
+  <div class="card">
+    <div class="ct">01 — credentials</div>
+    <div class="fg">
+      <label>Lock ID (256-bit)</label>
+      <input type="text" id="u-lid" placeholder="64-character hex lock id..." style="font-size:10px;">
+    </div>
+    <div class="r2">
+      <div class="fg">
+        <label>Gears</label>
+        <select id="u-g">
+          <option value="4">4</option><option value="6">6</option>
+          <option value="8" selected>8</option><option value="12">12</option><option value="16">16</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Spikes</label>
+        <select id="u-sp">
+          <option value="32">32</option><option value="64" selected>64</option><option value="128">128</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>PIN</label>
+      <input type="password" id="u-pin" placeholder="your secret pin">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">02 — verify</div>
+
+    <div class="live-ms">
+      <span class="live-ms-label">server timestamp (ms):</span>
+      <span class="live-ms-val" id="u-ms">--</span>
+    </div>
+
+    <div class="nonce-bar" id="nonce-bar">
+      <span>nonce active · expires in: <span class="nonce-timer" id="n-timer">--</span>s</span>
+      <span class="nonce-ok">✓ anti-replay active</span>
+    </div>
+
+    <div class="info">The system verifies your stored password against the current millisecond (±500ms). Click verify on the unlock day.</div>
+
+    <div class="uchars" id="u-chars"></div>
+    <div class="err" id="u-err"></div>
+
+    <button class="btn" id="btn-nonce" onclick="getNonce()"><span>◈ Request Nonce (Step 1)</span></button>
+    <button class="btn red" id="btn-verify" onclick="doVerify()" style="display:none"><span id="v-btxt">⬡ Verify &amp; Unlock (Step 2)</span></button>
+  </div>
+
+  <div class="result" id="u-res">
+    <div class="ri" id="r-ic"></div>
+    <div class="rt" id="r-tt"></div>
+    <div class="rd" id="r-dt"></div>
+  </div>
+
+</div>
+
+<!-- ══ HOW IT WORKS ══ -->
+<div class="panel" id="p-h">
+  <div class="card">
+    <div class="ct">v3 mechanism — step by step</div>
+    <div class="timeline">
+      <div class="tlitem">
+        <div class="tl-num">STEP 01</div>
+        <div class="tl-title">You pick a future date</div>
+        <div class="tl-desc">Choose the exact UTC date you want the lock to be openable. This date is baked into the lock — not the hour or minute, just the day.</div>
+      </div>
+      <div class="tlitem">
+        <div class="tl-num">STEP 02</div>
+        <div class="tl-title">Gears spin at 1ms intervals</div>
+        <div class="tl-desc">Each gear rotates once per millisecond at its own prime ratio (2×, 3×, 5×, 7×...). The hole on each gear aligns toward the center at a specific millisecond. That millisecond is the unlock_ts_ms — midnight UTC of your chosen date.</div>
+      </div>
+      <div class="tlitem">
+        <div class="tl-num">STEP 03</div>
+        <div class="tl-title">Password = alignment at unlock_ts_ms</div>
+        <div class="tl-desc">The character at each gear's aligned hole at exactly unlock_ts_ms forms your password. Stored once, never re-shown.</div>
+      </div>
+      <div class="tlitem">
+        <div class="tl-num">STEP 04</div>
+        <div class="tl-title">On unlock day — ±500ms window</div>
+        <div class="tl-desc">On the unlock date, the system checks if your password matches any millisecond within ±500ms of your submission time. This handles network latency without widening the attack surface.</div>
+      </div>
+      <div class="tlitem">
+        <div class="tl-num">STEP 05</div>
+        <div class="tl-title">Midnight passes — self-destruct fires</div>
+        <div class="tl-desc">At 00:00 UTC the day after unlock, the reaper thread finds the lock, overwrites all sensitive fields with random bytes, deletes from all data structures, and zeros memory. Nothing remains — not the config, not the PIN hash, not the lock ID.</div>
+      </div>
+      <div class="tlitem">
+        <div class="tl-num">STEP 06</div>
+        <div class="tl-title">Even with server access — nothing to find</div>
+        <div class="tl-desc">After self-destruct, a full server dump reveals no trace of the lock. The password was never stored. The PIN was never stored. The master secret was never stored. Everything derived on-the-fly, then erased.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">why 1ms rotation stops brute force</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text2);line-height:2.2;">
+      → Password changes every 1 millisecond = 86,400,000 different passwords per day<br>
+      → Minimum network round-trip = ~20ms = password changes 20 times before attempt arrives<br>
+      → Even if attacker guesses correctly, by arrival it's already wrong<br>
+      → ±500ms window exists ONLY for the legitimate user's stored password from creation time<br>
+      → Without the stored password + PIN, attacker must guess from ~86 billion daily combinations<br>
+      → Rate limit: 5 attempts per 5 min = max 1,440 attempts per day<br>
+      → 86,400,000,000 ÷ 1,440 = attacker needs ~60 million years to enumerate
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+const API = 'http://127.0.0.1:5000/api/v3';
+let gears = 8;
+let createdId = '';
+let serverTsOffset = 0;   // difference between server ms and Date.now()
+let nonceVal = '';
+let nonceExpiry = 0;
+let nonceInterval = null;
+let sdInterval = null;
+let _pw = '';
+
+// ── SERVER TIME SYNC ──────────────────────────────────────────────────────
+async function syncServerTime() {
+  try {
+    const t0 = Date.now();
+    const res = await fetch(`${API}/server-time`);
+    const t1 = Date.now();
+    const data = await res.json();
+    const serverMs = data.timestamp_ms + (t1 - t0) / 2;
+    serverTsOffset = serverMs - Date.now();
+  } catch(e) {
+    serverTsOffset = 0;
+  }
+}
+
+function serverNow() { return Date.now() + serverTsOffset; }
+
+// live ms header counter
+function startMsCounter() {
+  setInterval(() => {
+    const ms = serverNow();
+    document.getElementById('hdr-ms').textContent = ms.toLocaleString();
+    const uEl = document.getElementById('u-ms');
+    if(uEl) uEl.textContent = ms.toLocaleString();
+  }, 1);
+}
+
+syncServerTime().then(startMsCounter);
+setInterval(syncServerTime, 30000);  // re-sync every 30s
+
+// ── DATE PREVIEW ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('c-date').value = tomorrow.toISOString().split('T')[0];
+  updateDestructPreview();
+  buildUnlockChars();
+
+  document.getElementById('c-date').addEventListener('change', updateDestructPreview);
+  document.getElementById('u-g').addEventListener('change', buildUnlockChars);
+});
+
+function updateDestructPreview() {
+  const d = document.getElementById('c-date').value;
+  if(!d) return;
+  const unlockDay = new Date(d + 'T00:00:00Z');
+  const destructDay = new Date(unlockDay.getTime() + 86400000);
+  const box = document.getElementById('destruct-preview');
+  document.getElementById('destruct-preview-text').textContent =
+    `Accessible on: ${d} UTC  |  Self-destructs at: ${destructDay.toISOString().split('T')[0]} 00:00 UTC`;
+  box.style.display = 'flex';
+}
+
+// ── GEAR SELECTOR ─────────────────────────────────────────────────────────
+function sg(n) {
+  gears = n;
+  document.querySelectorAll('.gp').forEach(p => p.classList.toggle('on', +p.textContent === n));
+}
+
+// ── GEAR CANVAS (decorative — no holes revealed) ──────────────────────────
+function drawGears(canvas, numGears) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const CX = canvas.width / 2, CY = canvas.height / 2;
+  const RING = Math.min(CX, CY) - 65;
+  const GR = Math.min(36, RING * 0.32);
+  const aStep = (2 * Math.PI) / numGears;
+  let angle = 0;
+
+  // animate gear rotation
+  function frame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    angle += 0.005;
+
+    // center screw
+    ctx.beginPath(); ctx.arc(CX, CY, 13, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(0,255,204,0.08)'; ctx.fill();
+    ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#00ffcc'; ctx.font = '12px Share Tech Mono';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('+', CX, CY + 1);
+
+    for (let i = 0; i < numGears; i++) {
+      const a = i * aStep - Math.PI / 2;
+      const gx = CX + Math.cos(a) * RING;
+      const gy = CY + Math.sin(a) * RING;
+      const toCtr = Math.atan2(CY - gy, CX - gx);
+      // each gear rotates in opposite direction based on index
+      const rot = angle * (i % 2 === 0 ? 1 : -1) * (i + 1);
+
+      // connector
+      ctx.beginPath();
+      ctx.moveTo(gx + Math.cos(toCtr) * GR, gy + Math.sin(toCtr) * GR);
+      ctx.lineTo(CX + Math.cos(toCtr + Math.PI) * 13, CY + Math.sin(toCtr + Math.PI) * 13);
+      ctx.strokeStyle = 'rgba(0,255,204,0.15)'; ctx.lineWidth = 1;
+      ctx.setLineDash([3, 4]); ctx.stroke(); ctx.setLineDash([]);
+
+      // gear body
+      ctx.beginPath(); ctx.arc(gx, gy, GR, 0, 2 * Math.PI);
+      ctx.fillStyle = '#0b0f14'; ctx.fill();
+      ctx.strokeStyle = '#1a2535'; ctx.lineWidth = 0.5; ctx.stroke();
+
+      // inner ring
+      ctx.beginPath(); ctx.arc(gx, gy, GR * 0.65, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(191,95,255,0.15)'; ctx.lineWidth = 0.5;
+      ctx.setLineDash([2, 3]); ctx.stroke(); ctx.setLineDash([]);
+
+      // spikes — all identical, no hole marker
+      const NS = 10;
+      for (let s = 0; s < NS; s++) {
+        const sa = rot + s * (2 * Math.PI / NS);
+        ctx.beginPath();
+        ctx.moveTo(gx + Math.cos(sa) * GR, gy + Math.sin(sa) * GR);
+        ctx.lineTo(gx + Math.cos(sa) * (GR + 9), gy + Math.sin(sa) * (GR + 9));
+        ctx.strokeStyle = 'rgba(255,45,85,0.45)'; ctx.lineWidth = 3.5; ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+
+      // label
+      ctx.font = `500 ${Math.max(8, GR * 0.28)}px Barlow`;
+      ctx.fillStyle = '#1a2535'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(`G${i + 1}`, gx, gy);
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ── CREATE ────────────────────────────────────────────────────────────────
+async function createLock() {
+  const dateV = document.getElementById('c-date').value;
+  const pin   = document.getElementById('c-pin').value;
+  const pin2  = document.getElementById('c-pin2').value;
+  const err   = document.getElementById('c-err');
+  err.style.display = 'none';
+
+  if (!dateV) return showErr(err, 'Set unlock date.');
+  if (pin.length < 6) return showErr(err, 'PIN must be at least 6 characters.');
+  if (pin !== pin2) return showErr(err, 'PINs do not match.');
+  if (new Date(dateV + 'T00:00:00Z') <= new Date()) return showErr(err, 'Date must be in the future.');
+
+  document.getElementById('c-btxt').innerHTML = '<span class="spin"></span>creating...';
+
+  try {
+    const res = await fetch(`${API}/create`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        unlock_date: dateV,
+        num_gears: gears,
+        spikes: parseInt(document.getElementById('c-sp').value),
+        label: document.getElementById('c-label').value,
+        user_pin: pin,
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Server error');
+
+    createdId = data.lock_id;
+
+    document.getElementById('c-stats').innerHTML = `
+      <div class="stat"><span class="sv" style="font-size:9px">${data.lock_id.slice(0,16)}...</span><span class="sl">lock id (256-bit)</span></div>
+      <div class="stat"><span class="sv">${data.num_gears}</span><span class="sl">gears</span></div>
+      <div class="stat"><span class="sv">${data.spikes}</span><span class="sl">spikes/gear</span></div>
+      <div class="stat"><span class="sv">${data.entropy_bits}</span><span class="sl">entropy bits</span></div>
+      <div class="stat"><span class="sv">${data.unlock_date}</span><span class="sl">unlock date</span></div>
+      <div class="stat"><span class="sv" style="color:var(--red)">${data.self_destruct}</span><span class="sl">self-destruct</span></div>
+    `;
+
+    // self-destruct countdown
+    const sdDate = new Date(data.self_destruct.replace(' UTC', 'Z'));
+    document.getElementById('sd-detail').textContent =
+      `Lock accessible on ${data.unlock_date} UTC. All data permanently erased at ${data.self_destruct}.`;
+    clearInterval(sdInterval);
+    sdInterval = setInterval(() => {
+      const left = sdDate - Date.now();
+      if (left <= 0) {
+        document.getElementById('sd-timer').textContent = 'ERASED';
+        clearInterval(sdInterval);
+        return;
+      }
+      const d = Math.floor(left / 86400000);
+      const h = Math.floor((left % 86400000) / 3600000);
+      const m = Math.floor((left % 3600000) / 60000);
+      const s = Math.floor((left % 60000) / 1000);
+      document.getElementById('sd-timer').textContent = `${d}d ${h}h ${m}m ${s}s`;
+    }, 1000);
+
+    drawGears(document.getElementById('c-canvas'), gears);
+    document.getElementById('c-out').style.display = 'block';
+    document.getElementById('c-out').scrollIntoView({ behavior: 'smooth' });
+
+  } catch (e) {
+    showErr(err, e.message + ' — is gearlock_v3_server.py running on :5000?');
+  }
+  document.getElementById('c-btxt').textContent = '⚙ Generate GearLock v3';
+}
+
+async function revealPw() {
+  const pin = document.getElementById('r-pin').value;
+  const err = document.getElementById('r-err');
+  err.style.display = 'none';
+  if (!pin) return showErr(err, 'Enter your PIN.');
+  if (!createdId) return showErr(err, 'Create a lock first.');
+
+  document.getElementById('r-btxt').innerHTML = '<span class="spin"></span>verifying...';
+  try {
+    const res = await fetch(`${API}/preview`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lock_id: createdId, user_pin: pin })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Server error');
+
+    _pw = data.password;
+    const cont = document.getElementById('pw-chars');
+    cont.innerHTML = '';
+    data.password.split('').forEach((c, i) => {
+      const el = document.createElement('div');
+      el.className = 'pwc'; el.textContent = c;
+      el.style.animationDelay = (i * 0.04) + 's';
+      cont.appendChild(el);
+    });
+    document.getElementById('pw-box').style.display = 'block';
+    document.getElementById('pw-box').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) { showErr(err, e.message); }
+  document.getElementById('r-btxt').textContent = '⬡ Reveal Password';
+}
+
+function copyPw() {
+  if (_pw) {
+    navigator.clipboard.writeText(_pw);
+    const b = document.querySelector('.btn-copy');
+    b.textContent = '✓ copied!';
+    setTimeout(() => { b.textContent = '⊕ copy password'; }, 2000);
+  }
+}
+
+// ── UNLOCK ────────────────────────────────────────────────────────────────
+function buildUnlockChars() {
+  const n = parseInt(document.getElementById('u-g').value) || 8;
+  const c = document.getElementById('u-chars');
+  c.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.maxLength = 1; inp.className = 'uc';
+    inp.addEventListener('input', function () {
+      this.value = this.value.toUpperCase().slice(-1);
+      if (this.value && this.nextElementSibling) this.nextElementSibling.focus();
+    });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !this.value && this.previousElementSibling)
+        this.previousElementSibling.focus();
+    });
+    c.appendChild(inp);
+  }
+}
+
+async function getNonce() {
+  const lid = document.getElementById('u-lid').value.trim();
+  const err = document.getElementById('u-err');
+  err.style.display = 'none';
+  if (!lid) return showErr(err, 'Enter your Lock ID.');
+
+  try {
+    const res = await fetch(`${API}/nonce`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lock_id: lid })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Server error');
+
+    nonceVal = data.nonce;
+    nonceExpiry = Date.now() + data.expires_in_seconds * 1000;
+
+    document.getElementById('nonce-bar').style.display = 'flex';
+    document.getElementById('btn-nonce').style.display = 'none';
+    document.getElementById('btn-verify').style.display = 'block';
+
+    clearInterval(nonceInterval);
+    nonceInterval = setInterval(() => {
+      const left = Math.max(0, Math.ceil((nonceExpiry - Date.now()) / 1000));
+      document.getElementById('n-timer').textContent = left;
+      if (left <= 0) {
+        clearInterval(nonceInterval);
+        document.getElementById('nonce-bar').style.display = 'none';
+        document.getElementById('btn-nonce').style.display = 'block';
+        document.getElementById('btn-verify').style.display = 'none';
+        showErr(err, 'Nonce expired (10s TTL). Request a new one.');
+        nonceVal = '';
+      }
+    }, 1000);
+  } catch (e) { showErr(err, e.message + ' — is the server running?'); }
+}
+
+async function doVerify() {
+  const lid    = document.getElementById('u-lid').value.trim();
+  const pin    = document.getElementById('u-pin').value;
+  const numG   = parseInt(document.getElementById('u-g').value);
+  const inputs = document.querySelectorAll('.uc');
+  const attempt = Array.from(inputs).map(i => i.value.toUpperCase()).join('');
+  const err    = document.getElementById('u-err');
+  err.style.display = 'none';
+
+  if (!pin) return showErr(err, 'Enter PIN.');
+  if (attempt.length < numG) return showErr(err, 'Fill all password characters.');
+  if (!nonceVal) return showErr(err, 'Request a nonce first.');
+
+  document.getElementById('v-btxt').innerHTML = '<span class="spin"></span>verifying on server...';
+
+  try {
+    const res = await fetch(`${API}/verify`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lock_id: lid, nonce: nonceVal,
+        password_attempt: attempt, user_pin: pin,
+        client_timestamp_ms: serverNow(),
+      })
+    });
+    const data = await res.json();
+
+    const box = document.getElementById('u-res');
+    if (data.granted) {
+      box.className = 'result ok'; box.style.display = 'block';
+      document.getElementById('r-ic').textContent = '⬡';
+      document.getElementById('r-tt').textContent = 'ACCESS GRANTED';
+      document.getElementById('r-dt').innerHTML =
+        `opened at: ${data.opened_at}<br>lock id: ${lid.slice(0, 20)}...<br>lock permanently consumed<br>${data.note}`;
+      inputs.forEach(i => i.classList.add('ok'));
+    } else {
+      box.className = 'result fail'; box.style.display = 'block';
+      document.getElementById('r-ic').textContent = '⬢';
+      document.getElementById('r-tt').textContent = 'ACCESS DENIED';
+      let detail = data.error || 'Verification failed';
+      if (data.days_remaining) detail += `<br>unlock in ${data.days_remaining} day(s)`;
+      if (data.attempts_remaining !== undefined) detail += `<br>${data.attempts_remaining} attempts remaining before lockout`;
+      document.getElementById('r-dt').innerHTML = detail;
+    }
+
+    clearInterval(nonceInterval);
+    document.getElementById('nonce-bar').style.display = 'none';
+    document.getElementById('btn-nonce').style.display = 'block';
+    document.getElementById('btn-verify').style.display = 'none';
+    nonceVal = '';
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  } catch (e) { showErr(err, e.message); }
+  document.getElementById('v-btxt').textContent = '⬡ Verify & Unlock (Step 2)';
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function tab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) =>
+    t.classList.toggle('on', ['c','u','h'][i] === name));
+  document.querySelectorAll('.panel').forEach((p, i) =>
+    p.classList.toggle('on', ['p-c','p-u','p-h'][i] === 'p-' + name));
+  if (name === 'u') buildUnlockChars();
+}
+
+function showErr(el, msg) { el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
+</script>
+</body>
+</html>
